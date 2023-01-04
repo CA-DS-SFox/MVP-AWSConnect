@@ -95,7 +95,8 @@ df_calls_transform <- df_calls_orig %>%
 cols_drop <- 
   c(df_calls_transform %>% colnames()  %>% str_subset('Timestamp'), 
     df_calls_transform %>% colnames()  %>% str_subset('ContactId'),
-    "Agent.Username", "Agent.AfterContactWorkDuration", "Agent.AgentInteractionDuration","Agent.CustomerHoldDuration","Agent.LongestHoldDuration")
+    "Agent.Username", "Agent.AfterContactWorkDuration", "Agent.AgentInteractionDuration","Agent.CustomerHoldDuration","Agent.LongestHoldDuration",
+    "Attributes.CA Holiday","Attributes.Key Press (Error)","Attributes.Key press","Attributes.KeyPress","Attributes.Key Press")
 
 df_calls <- df_calls_transform %>% 
   mutate(phone.number = str_replace(SystemEndpoint.Address,'\\+','')) %>% 
@@ -110,10 +111,27 @@ df_calls <- df_calls_transform %>%
          starts_with('call_'),
          starts_with('tm_'),
          starts_with("dur_"),
+         "AgentConnectionAttempts","Agent.NumberOfHolds","Agent.RoutingProfile.Name",
+         starts_with("Agent.HierarchyGroups"),
          starts_with("Agent"),
+         "Attributes.Outcome",
          starts_with("Attributes"),
          everything()) %>% 
   select(-all_of(cols_drop))
+
+
+# -------------------------------------------------------------------------
+# sanity checks 
+
+# check all oktaid are found in the reference table
+df_calls %>% 
+  filter(!is.na(oktaid)) %>% 
+  filter(is.na(okta.name)) %>% 
+  mutate(CheckFailed = 'Oktaid not found in reference table') %>% 
+  distinct(oktaid)
+
+# -------------------------------------------------------------------------
+
 
 # latest full weeks calls
 df_calls_lastweek <- df_calls %>% 
