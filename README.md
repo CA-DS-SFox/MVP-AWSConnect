@@ -1,5 +1,5 @@
 # MVP-AWSConnect
-R scripts exploring transforms needed to create reporting analysis dataset from flattened JSON data - 2023/01/03
+R scripts exploring transforms needed to create reporting analysis dataset from flattened JSON data
 
 ## R_101_GetCSVData.R
 - Accumualates CSV data from daily exports created from Jon's flattening script that is run manually every morning
