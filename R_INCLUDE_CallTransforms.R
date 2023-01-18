@@ -25,15 +25,18 @@ df_calls_transform <- df_calls_orig %>%
   mutate(LastUpdateTimestamp = as.POSIXct(LastUpdateTimestamp)) %>% 
   
   # we need more granular date and time fields for some timestamps
+  # renamed to 'when' family of variables from 18/01/23
   mutate(date_call = as.Date(InitiationTimestamp)) %>% 
-  mutate(call_date = date_call) %>% 
-  mutate(call_week = format(date_call,'%Y-%W')) %>% 
-  mutate(call_day = format(call_date, '%A')) %>% 
-  mutate(call_day = factor(call_day, levels = c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))) %>% 
-  mutate(call_month = format(call_date, '%Y-%m')) %>% 
-  mutate(call_hour = format(InitiationTimestamp, '%H')) %>% 
-  mutate(call_minute = format(InitiationTimestamp, '%M')) %>% 
-  mutate(call_second = format(InitiationTimestamp, '%S')) %>% 
+  # I know this is a straightforward copy, which may seem pointless from a adat perspective, BUT
+  # from an analysis point of view it makes sense to have a 'set' of commonly named variables
+  mutate(when_date = date_call) %>% 
+  mutate(when_week = format(date_call,'%Y-%W')) %>% 
+  mutate(when_day = format(when_date, '%A')) %>% 
+  mutate(when_day = factor(when_day, levels = c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))) %>% 
+  mutate(when_month = format(when_date, '%Y-%m')) %>% 
+  mutate(when_hour = format(InitiationTimestamp, '%H')) %>% 
+  mutate(when_minute = format(InitiationTimestamp, '%M')) %>% 
+  mutate(when_second = format(InitiationTimestamp, '%S')) %>% 
   
   # times without date 
   mutate(tm_sched = format(ScheduledTimestamp, '%H:%M:%S')) %>% 
@@ -53,9 +56,11 @@ df_calls_transform <- df_calls_orig %>%
   mutate(dur_init_que = as.integer(difftime(Queue.EnqueueTimestamp, InitiationTimestamp, unit = 'secs'))) %>% 
   mutate(dur_enq_deq = as.integer(difftime(Queue.DequeueTimestamp, Queue.EnqueueTimestamp, unit = 'secs'))) %>% 
   mutate(dur_deq_agnt = as.integer(difftime(Agent.ConnectedToAgentTimestamp, Queue.DequeueTimestamp, unit = 'secs'))) %>% 
-  # total customer in-call
+  # time to answer
+  mutate(dur_conn = as.integer(difftime(Agent.ConnectedToAgentTimestamp, Queue.DequeueTimestamp, unit = 'secs'))) %>% 
+  # total customer in-call time
   mutate(dur_call = as.integer(difftime(Agent.AfterContactWorkStartTimestamp, Agent.ConnectedToAgentTimestamp, unit = 'secs'))) %>% 
-  # interaction time
+  # interaction time from Connect
   mutate(dur_call_interact = as.integer(Agent.AgentInteractionDuration)) %>% 
   # hold time
   mutate(dur_call_hold = as.integer(Agent.CustomerHoldDuration)) %>% 
@@ -68,12 +73,14 @@ df_calls_transform <- df_calls_orig %>%
   mutate(oktaid = Agent.Username) %>% 
   
   # flags
-  mutate(flag_weekday = case_when(call_day %in% c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday') ~ 1, T ~ 0)) %>% 
+  mutate(flag_weekday = case_when(when_day %in% c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday') ~ 1, T ~ 0)) %>% 
   mutate(flag_queued = case_when(!is.na(tm_quenq) ~ 1, T ~ 0)) %>% 
   mutate(flag_answer = case_when(!is.na(tm_agcon) ~ 1, T ~ 0)) %>% 
   mutate(flag_inbound = case_when(InitiationMethod == 'INBOUND' ~ 1, T ~ 0)) %>% 
   mutate(flag_outbound = case_when(InitiationMethod == 'OUTBOUND' ~ 1, T ~ 0)) %>% 
   mutate(flag_other = case_when(!InitiationMethod %in% c('INBOUND','OUTBOUND') ~ 1, T ~ 0)) %>% 
+  mutate(flag_answerin20 = case_when(dur_enq_deq < 21 ~ 1, T ~ 0)) %>% 
+  mutate(flag_calllonger30 = case_when(dur_call > 30 ~ 1, T ~ 0)) %>% 
   
   # phone number they called formatted as a key for reference data
   mutate(phone.number = str_replace(SystemEndpoint.Address,'\\+','')) %>% 
@@ -119,6 +126,12 @@ df_calls <- df_calls_transform %>%
          everything()) %>% 
   select(-all_of(cols_drop))
 
+strfix <- function(ss) {
+  return(str_replace_all(ss, '[\n\r]', ''))
+}
+
+# remove line feeds and carriage returns from text fields
+df_calls <- data.frame(lapply(df_calls, strfix))
 
 # -------------------------------------------------------------------------
 # sanity checks 
@@ -135,10 +148,10 @@ df_calls %>%
 
 # latest full weeks calls
 df_calls_lastweek <- df_calls %>% 
-  filter(call_week == max(call_week[call_day == 'Friday']))
+  filter(when_week == max(when_week[when_day == 'Friday']))
 
 df_calls_lastweek %>% filter(is.na(service)) %>% count(phone.number, service)
 
 # current weeks calls
 df_calls_thisweek <- df_calls %>% 
-  filter(call_week == max(call_week))
+  filter(when_week == max(when_week))
