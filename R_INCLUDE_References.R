@@ -4,59 +4,64 @@
 
 # -------------------------------------------------------------------------
 
-source_okta <- 'O:/Technology/Data Service - Advisers/data-raw/historic/2022-12-18_AllUsersbyMRB_Vols.csv'
+#source_okta <- 'O:/Technology/Data Service - Advisers/data-raw/historic/2022-12-18_AllUsersbyMRB_Vols.csv'
+source_okta <- 'O:/Technology/MVP-OktaExports/data/reporting_oktaadvisers.csv'
 df_okta <- read_csv(source_okta, col_types = cols(.default='c'))
 
 df_okta <- df_okta %>% 
-  mutate(okta.name = paste(firstName, lastName)) %>% 
-  mutate(okta.MBR = office) %>% 
-  mutate(okta.type = case_when(volunteer == 'yes' ~ 'Volunteer',
-                               volunteer == 'no' ~ 'Staff',
-                               T ~ 'Unknown')) %>% 
-  select(oktaid, okta.name, okta.MBR, okta.type) %>% 
-  group_by(oktaid) %>% 
-  filter(row_number() == 1) %>% 
+  rename(oktaid = okta_id) %>% 
+  rename(okta.name = advisername) %>% 
+  rename(okta.MBR = office) %>% 
+  select(oktaid, okta.name, okta.MBR) %>% 
   ungroup()
 
 # -------------------------------------------------------------------------
 
-df_services <- tibble::tribble(~service, ~phone.number, ~Description,
-                               "IT Service Desk",442034679897, NA,
-                               "Consumer Operations",443005000922, NA,
-                               "Consumer Operations",442034679560,"Pre-porting temp number",
-                               "Network Support",443451202035, NA,
-                               "Network Support",448451202035, NA,
-                               "Network Support",442034679563,"Pre-porting temp number",
-                               "MAPSDAP",442036950102,"Pre-porting temp number",
-                               "MAPSDAP",448081788398, NA,
-                               "MAPSDAP",442036950124,"From Adviceline Queue IVR",
-                               "MAPSDAP",442036086687, "Returned calls message",
-                               "Birmingham Debt",442038300097, NA,
-                               "Help To Claim",448081897199,"England",
-                               "Help To Claim",448081897129,"Wales",
-                               "Help To Claim",442038300543,"BSL",
-                               "Help To Claim",442034672252, "Advicelink Landing Pad",
-                               "Help To Claim",442038300606, "Adviceline Landing Pad",
-                               "Help Through Hardship",448081788098, NA,
-                               "Help Through Hardship",442034676920,"Voicemail",
-                               "EU Citizens Rights",443300544903, NA,
-                               "Witness Service",443300544685, "English & Staff / Partners",
-                               "Witness Service",443300544917,"Welsh",
-                               "Witness Service",443300544920,"BSL",
-                               "EDF",443003300519,"Inbound",
-                               "EDF",448081788049, "Outbound",
-                               "EDF",442034679579,"Pre-porting temp number",
-                               "EDF",448081566666, "Main public number",
-                               "Client Services",442034679590,"Pre-porting temp number",
-                               "Client Services",443000231900, NA,
-                               "Macmillan",442034679542,"Pre-porting temp number",
-                               "Macmillan",443003302120, NA,
-                               "Healthwatch Isle of Wight",442038300570, NA,
-                               "Immigration Advisory",442034679789, NA,
-                               "Dudley Empowerment",442034679793, NA,
-                               "Pension Wise",	443300544866,	"Inbound Calls",
-                               "Consumer",	448081897277,	"Inbound English",
-                               "Internal Users",	443003302152,	"Accenture System Checks",
-                               "Internal Users",	442038301603,	"Phones Team Live Proving Line",
-                               "Witness Service",	448081897255,	"English : Staff/Partners and BSL : Outbound") %>% 
+df_services <- tibble::tribble(~date_from, ~service, ~phone.number, ~Description, 
+                               "2023-01-01", "IT Service Desk", 442034679897, NA,
+                               "2023-01-01", "Consumer Operations",443005000922, NA,
+                               "2023-01-01", "Consumer Operations",442034679560,"Pre-porting temp number",
+                               
+                               "2023-01-18", "ASSUME - Consumer Service", 443300544695, NA,
+                               "2023-01-18", "ASSUME - Consumer Service", 443300544925, NA,
+                               "2023-01-18", "ASSUME - Consumer Service", 448081788171, NA,
+                               "2023-01-18", "ASSUME - Consumer Service", 443300544934, "Welsh",
+                               "2023-01-18", "ASSUME - Consumer Service", 448081897265, "Welsh",
+                               "2023-01-18", "ASSUME - Consumer Service", 448081897281, "start scam",
+                               
+                               "2023-01-01", "Network Support",443451202035, NA,
+                               "2023-01-01", "Network Support",448451202035, NA,
+                               "2023-01-01", "Network Support",442034679563,"Pre-porting temp number",
+                               "2023-01-01", "MAPSDAP",442036950102,"Pre-porting temp number",
+                               "2023-01-01", "MAPSDAP",448081788398, NA,
+                               "2023-01-01", "MAPSDAP",442036950124,"From Adviceline Queue IVR",
+                               "2023-01-01", "MAPSDAP",442036086687, "Returned calls message",
+                               "2023-01-01", "Birmingham Debt",442038300097, NA,
+                               "2023-01-01", "Help To Claim",448081897199,"England",
+                               "2023-01-01", "Help To Claim",448081897129,"Wales",
+                               "2023-01-01", "Help To Claim",442038300543,"BSL",
+                               "2023-01-01", "Help To Claim",442034672252, "Advicelink Landing Pad",
+                               "2023-01-01", "Help To Claim",442038300606, "Adviceline Landing Pad",
+                               "2023-01-01", "Help Through Hardship",448081788098, NA,
+                               "2023-01-01", "Help Through Hardship",442034676920,"Voicemail",
+                               "2023-01-01", "EU Citizens Rights",443300544903, NA,
+                               "2023-01-01", "Witness Service",443300544685, "English & Staff / Partners",
+                               "2023-01-01", "Witness Service",443300544917,"Welsh",
+                               "2023-01-01", "Witness Service",443300544920,"BSL",
+                               "2023-01-01", "EDF",443003300519,"Inbound",
+                               "2023-01-01", "EDF",448081788049, "Outbound",
+                               "2023-01-01", "EDF",442034679579,"Pre-porting temp number",
+                               "2023-01-01", "EDF",448081566666, "Main public number",
+                               "2023-01-01", "Client Services",442034679590,"Pre-porting temp number",
+                               "2023-01-01", "Client Services",443000231900, NA,
+                               "2023-01-01", "Macmillan",442034679542,"Pre-porting temp number",
+                               "2023-01-01", "Macmillan",443003302120, NA,
+                               "2023-01-01", "Healthwatch Isle of Wight",442038300570, NA,
+                               "2023-01-01", "Immigration Advisory",442034679789, NA,
+                               "2023-01-01", "Dudley Empowerment",442034679793, NA,
+                               "2023-01-01", "Pension Wise",	443300544866,	"Inbound Calls",
+                               "2023-01-01", "Consumer",	448081897277,	"Inbound English",
+                               "2023-01-01", "Internal Users",	443003302152,	"Accenture System Checks",
+                               "2023-01-01", "Internal Users",	442038301603,	"Phones Team Live Proving Line",
+                               "2023-01-01", "Witness Service",	448081897255,	"English : Staff/Partners and BSL : Outbound") %>% 
   mutate(phone.number = as.character(phone.number))
