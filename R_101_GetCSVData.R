@@ -4,6 +4,7 @@ library(glue)
 library(here)
 
 WRITE.DATA = TRUE
+WRITE.PARQUET = TRUE
 
 # -------------------------------------------------------------------------
 # get Jon's CSV exports 
@@ -20,7 +21,7 @@ df_csvs <- tibble(csvdata = list.files(source_dir, recursive = TRUE)) %>%
 print(glue('CSV files from Jons process - {nrow(df_csvs)} in total from {min(df_csvs$day)} to {max(df_csvs$day)}'))
 
 # -------------------------------------------------------------------------
-# get current total file
+# get current downloaded files and figure out which new ones to get
 local_dir <- here('data')
 
 df_downloads <- tibble(csvdata = list.files(local_dir, recursive = TRUE)) %>% 
@@ -81,44 +82,57 @@ print(glue('Collected {nrow(df_get)} CSVs from {date_from} to {date_to}, {nrow(o
 # -------------------------------------------------------------------------
 # save to file
 
-out.file <- here('data',glue('CTR_{date_from}_{date_to}.csv'))
-print(glue('Saving to {out.file}'))
-if (WRITE.DATA) write.csv(outputcsv, out.file, row.names = FALSE)
-
+if (WRITE.DATA) {
+  out.file <- here('data',glue('CTR_{date_from}_{date_to}.csv'))
+  print(glue('Saving to {out.file}'))
+  write.csv(outputcsv, out.file, row.names = FALSE)
+  
+  out.file <- here('data',glue('CTR_{date_from}_{date_to}.parquet'))
+  print(glue('Saving to {out.file}'))
+  write_parquet(outputcsv, out.file)
+}
 
 # -------------------------------------------------------------------------
-# parquet format - need to make this more automated
+# create total data in parquet format - need to make this more automated
 
 if (WRITE_PARQUET) {
   local_dir <- here('data')
   
-  df_prod_downloads <- tibble(csvdata = list.files(local_dir, recursive = TRUE)) %>% 
+  df_parquets <- tibble(csvdata = list.files(local_dir, recursive = TRUE)) %>% 
     mutate(type = word(csvdata, 2, sep='\\.')) %>% 
+    filter(type == 'parquet') %>% 
     mutate(tag = word(csvdata, 1, sep='_')) %>% 
+    filter(tag == 'CTR') %>% 
     mutate(date_from = word(csvdata, 2, sep='_')) %>% 
     mutate(date_to = word(csvdata, 3, sep='_')) %>% 
     mutate(date_to = word(date_to, 1, sep = '\\.')) %>% 
-    filter(tag == 'CTR') %>% 
-    # filter(date_from >= '2022-12-02') %>% 
     identity()
   
-  df_prod_downloads
+  date_from <- df_parquets %>% filter(date_from == min(date_from)) %>% pull(date_from)
+  date_to <- df_parquets %>%  filter(date_to == max(date_to)) %>% pull(date_to)
+  
+  print(glue('Merging {nrow(df_parquets)} parquet files from {date_from} to {date_to}'))
+  
+  df_parquets
   
   # combined dataset
-  for (i in seq_len(nrow(df_prod_downloads))) {
+  for (i in seq_len(nrow(df_parquets))) {
     
-    in.file <- here('data',df_prod_downloads[i,c('csvdata')])
+    in.file <- here('data',df_parquets[i,c('csvdata')])
     
     if (i == 1) {
-      df_ctrs_orig <- read_csv(in.file, col_types = cols(.default = 'c'))
+      df_ctrs_orig <- read_parquet(in.file) %>% mutate_all(as.character)
     } else {
       df_ctrs_orig <- dplyr::bind_rows(df_ctrs_orig, 
-                                       read_csv(in.file, col_types = cols(.default = 'c')))
+                                       df_ctrs_orig <- read_parquet(in.file) %>% mutate_all(as.character))
     }
     
     print(glue('File {i}, {in.file}, total rows {nrow(df_ctrs_orig)}, cols {ncol(df_ctrs_orig)}'))
   }
   
-  outfile <- here('data','CTR_2022-09-12_2023-01-05.parquet')
-  write_parquet(df_ctrs_orig, outfile)
+  # save to disk
+  out.file <- here('data',glue('TOTAL_{date_from}_{date_to}.parquet'))
+  print(glue('Saving to {out.file}, {nrow(df_ctrs_orig)} records in total'))
+  write_parquet(df_ctrs_orig, out.file)
+  
 }
