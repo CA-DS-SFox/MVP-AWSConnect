@@ -10,7 +10,7 @@ source('R_INCLUDE_References.R')      # reference tables
 # -------------------------------------------------------------------------
 # read data
 
-# get current totals file downloaded by script 101 from Jons data
+# get current totals file parquet file created in R_101_GetCSVData.R
 local_dir <- here('data')
 
 df_prod_arrow <- tibble(datafiles = list.files(local_dir, recursive = TRUE)) %>% 
@@ -19,9 +19,9 @@ df_prod_arrow <- tibble(datafiles = list.files(local_dir, recursive = TRUE)) %>%
   mutate(date_from = word(datafiles, 2, sep='_')) %>%
   mutate(date_to = word(datafiles, 3, sep='_')) %>%
   mutate(date_to = word(date_to, 1, sep = '\\.')) %>%
-  filter(tag == 'CTR') %>%
+  filter(tag == 'TOTAL') %>%
   filter(type == 'parquet') %>% 
-  # filter(date_from >= '2022-12-02') %>%
+  filter(date_to == max(date_to)) %>%
   identity()
 
 df_prod_arrow
@@ -39,38 +39,6 @@ for (i in seq_len(nrow(df_prod_arrow))) {
 
   print(glue('File {i}, {in.file}, total rows {nrow(df_ctrs_orig)}, cols {ncol(df_ctrs_orig)}'))
 }
-
-# -------------------------------------------------------------------------
-# OLD CSV code
-
-# df_prod_downloads <- tibble(csvdata = list.files(local_dir, recursive = TRUE)) %>% 
-#   mutate(type = word(csvdata, 2, sep='\\.')) %>% 
-#   mutate(tag = word(csvdata, 1, sep='_')) %>% 
-#   mutate(date_from = word(csvdata, 2, sep='_')) %>% 
-#   mutate(date_to = word(csvdata, 3, sep='_')) %>% 
-#   mutate(date_to = word(date_to, 1, sep = '\\.')) %>% 
-#   filter(tag == 'CTR') %>% 
-#   # filter(date_from >= '2022-12-02') %>% 
-#   identity()
-# 
-# df_prod_downloads
-# 
-# # -------------------------------------------------------------------------
-# # make a combined dataset
-# 
-# for (i in seq_len(nrow(df_prod_downloads))) {
-#   
-#   in.file <- here('data',df_prod_downloads[i,c('csvdata')])
-# 
-#   if (i == 1) {
-#     df_ctrs_orig <- read_csv(in.file, col_types = cols(.default = 'c'))
-#   } else {
-#     df_ctrs_orig <- dplyr::bind_rows(df_ctrs_orig, 
-#                                 read_csv(in.file, col_types = cols(.default = 'c')))
-#   }
-#   
-#   print(glue('File {i}, {in.file}, total rows {nrow(df_ctrs_orig)}, cols {ncol(df_ctrs_orig)}'))
-# }
 
 # we need a contactid for the set of records that happened
 df_ctrs_orig <- df_ctrs_orig %>% 
