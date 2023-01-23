@@ -2,6 +2,17 @@
 
 # reference tables
 
+mbr_source <- 'Member + Location sheet (Salesforce data)'
+mbr_google <- 'https://docs.google.com/spreadsheets/d/1SIFJPCA8duV7qFnq6u1eq8o8tHEXMMFGCVa4Ea6nCWc/edit#gid=2032453984'
+mbr_sheet <- 'Member List (1)'
+
+df_mbr <- googlesheets4::read_sheet(mbr_google, sheet = mbr_sheet) %>%
+  select(member_number = Membership_Number__c, member_name = Name) %>% 
+  mutate(mbr_source = paste0('Googlesheet : ', mbr_source)) %>% 
+  mutate(mbr_extract_date = Sys.Date()) %>% 
+  mutate(member_aws = str_replace(member_number, '/','')) %>% 
+  select(mbr_extract_date, mbr_source, member_number, member_aws, member_name)
+  
 # -------------------------------------------------------------------------
 
 #source_okta <- 'O:/Technology/Data Service - Advisers/data-raw/historic/2022-12-18_AllUsersbyMRB_Vols.csv'
@@ -10,9 +21,9 @@ df_okta <- read_csv(source_okta, col_types = cols(.default='c'))
 
 df_okta <- df_okta %>% 
   rename(oktaid = okta_id) %>% 
-  rename(okta.name = advisername) %>% 
-  rename(okta.MBR = office) %>% 
-  select(oktaid, okta.name, okta.MBR) %>% 
+  rename(okta_name = advisername) %>% 
+  rename(okta_MBR = office) %>% 
+  select(oktaid, okta_name, okta_MBR) %>% 
   ungroup()
 
 # -------------------------------------------------------------------------
