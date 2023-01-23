@@ -88,3 +88,10 @@ df_ctrs_good %>%
 
 # -------------------------------------------------------------------------
 
+# save to disk
+WRITE.PARQUET <- FALSE
+if (WRITE.PARQUET) {
+  out.file <- here('data',glue('CALLS_{Sys.Date()}.parquet'))
+  print(glue('Saving to {out.file}, {nrow(df_ctrs_good)} records in total'))
+  write_parquet(df_calls_orig, out.file)
+}

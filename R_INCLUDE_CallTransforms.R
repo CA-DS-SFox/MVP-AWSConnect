@@ -29,70 +29,73 @@ df_calls_transform <- df_calls_orig %>%
   mutate(date_call = as.Date(InitiationTimestamp)) %>% 
   # I know this is a straightforward copy, which may seem pointless from a adat perspective, BUT
   # from an analysis point of view it makes sense to have a 'set' of commonly named variables
-  mutate(when_date = date_call) %>% 
-  mutate(when_week = format(date_call,'%Y-%W')) %>% 
-  mutate(when_day = format(when_date, '%A')) %>% 
-  mutate(when_day = factor(when_day, levels = c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))) %>% 
-  mutate(when_month = format(when_date, '%Y-%m')) %>% 
-  mutate(when_hour = format(InitiationTimestamp, '%H')) %>% 
-  mutate(when_minute = format(InitiationTimestamp, '%M')) %>% 
-  mutate(when_second = format(InitiationTimestamp, '%S')) %>% 
-  
-  # times without date 
-  mutate(tm_sched = format(ScheduledTimestamp, '%H:%M:%S')) %>% 
-  mutate(tm_init = format(InitiationTimestamp, '%H:%M:%S')) %>% 
-  mutate(tm_conn = format(ConnectedToSystemTimestamp, format = '%H:%M:%S')) %>% 
-  mutate(tm_quenq = format(Queue.EnqueueTimestamp, '%H:%M:%S')) %>% 
-  mutate(tm_qudeq = format(Queue.DequeueTimestamp, '%H:%M:%S')) %>% 
-  mutate(tm_agcon = format(Agent.ConnectedToAgentTimestamp, '%H:%M:%S')) %>% 
-  mutate(tm_tranf = format(TransferCompletedTimestamp, '%H:%M:%S')) %>% 
-  mutate(tm_agwrs = format(Agent.AfterContactWorkStartTimestamp, '%H:%M:%S')) %>% 
-  mutate(tm_agwre = format(Agent.AfterContactWorkEndTimestamp, '%H:%M:%S')) %>% 
-  mutate(tm_disc = format(DisconnectTimestamp, '%H:%M:%S')) %>% 
-  mutate(tm_updat = format(LastUpdateTimestamp, format = '%H:%M:%S')) %>% 
-  
+  mutate(when_date = date_call) %>%
+  mutate(when_week = format(date_call,'%Y-%W')) %>%
+  mutate(when_day = format(when_date, '%A')) %>%
+  mutate(when_day = factor(when_day, levels = c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))) %>%
+  mutate(when_month = format(when_date, '%Y-%m')) %>%
+  mutate(when_hour = format(InitiationTimestamp, '%H')) %>%
+  mutate(when_minute = format(InitiationTimestamp, '%M')) %>%
+  mutate(when_second = format(InitiationTimestamp, '%S')) %>%
+
+  # times without date
+  mutate(tm_sched = format(ScheduledTimestamp, '%H:%M:%S')) %>%
+  mutate(tm_init = format(InitiationTimestamp, '%H:%M:%S')) %>%
+  mutate(tm_conn = format(ConnectedToSystemTimestamp, format = '%H:%M:%S')) %>%
+  mutate(tm_quenq = format(Queue.EnqueueTimestamp, '%H:%M:%S')) %>%
+  mutate(tm_qudeq = format(Queue.DequeueTimestamp, '%H:%M:%S')) %>%
+  mutate(tm_agcon = format(Agent.ConnectedToAgentTimestamp, '%H:%M:%S')) %>%
+  mutate(tm_tranf = format(TransferCompletedTimestamp, '%H:%M:%S')) %>%
+  mutate(tm_agwrs = format(Agent.AfterContactWorkStartTimestamp, '%H:%M:%S')) %>%
+  mutate(tm_agwre = format(Agent.AfterContactWorkEndTimestamp, '%H:%M:%S')) %>%
+  mutate(tm_disc = format(DisconnectTimestamp, '%H:%M:%S')) %>%
+  mutate(tm_updat = format(LastUpdateTimestamp, format = '%H:%M:%S')) %>%
+
   # duration in each state
-  mutate(dur_init_conn = as.integer(difftime(ConnectedToSystemTimestamp, InitiationTimestamp, unit = 'secs'))) %>% 
-  mutate(dur_init_que = as.integer(difftime(Queue.EnqueueTimestamp, InitiationTimestamp, unit = 'secs'))) %>% 
-  mutate(dur_enq_deq = as.integer(difftime(Queue.DequeueTimestamp, Queue.EnqueueTimestamp, unit = 'secs'))) %>% 
-  mutate(dur_deq_agnt = as.integer(difftime(Agent.ConnectedToAgentTimestamp, Queue.DequeueTimestamp, unit = 'secs'))) %>% 
+  mutate(dur_init_conn = as.integer(difftime(ConnectedToSystemTimestamp, InitiationTimestamp, unit = 'secs'))) %>%
+  mutate(dur_init_que = as.integer(difftime(Queue.EnqueueTimestamp, InitiationTimestamp, unit = 'secs'))) %>%
+  mutate(dur_enq_deq = as.integer(difftime(Queue.DequeueTimestamp, Queue.EnqueueTimestamp, unit = 'secs'))) %>%
+  mutate(dur_deq_agnt = as.integer(difftime(Agent.ConnectedToAgentTimestamp, Queue.DequeueTimestamp, unit = 'secs'))) %>%
   # time to answer
-  mutate(dur_conn = as.integer(difftime(Agent.ConnectedToAgentTimestamp, Queue.DequeueTimestamp, unit = 'secs'))) %>% 
+  mutate(dur_conn = as.integer(difftime(Agent.ConnectedToAgentTimestamp, Queue.DequeueTimestamp, unit = 'secs'))) %>%
   # total customer in-call time
-  mutate(dur_call = as.integer(difftime(Agent.AfterContactWorkStartTimestamp, Agent.ConnectedToAgentTimestamp, unit = 'secs'))) %>% 
+  mutate(dur_call = as.integer(difftime(Agent.AfterContactWorkStartTimestamp, Agent.ConnectedToAgentTimestamp, unit = 'secs'))) %>%
   # interaction time from Connect
-  mutate(dur_call_interact = as.integer(Agent.AgentInteractionDuration)) %>% 
+  mutate(dur_call_interact = as.integer(Agent.AgentInteractionDuration)) %>%
   # hold time
-  mutate(dur_call_hold = as.integer(Agent.CustomerHoldDuration)) %>% 
-  # mutate(dur_aft = as.integer(difftime(Agent.AfterContactWorkEndTimestamp, Agent.AfterContactWorkStartTimestamp, unit = 'secs'))) %>% 
-  mutate(dur_aft = as.integer(Agent.AfterContactWorkDuration)) %>% 
-  mutate(dur_dis_upd = as.integer(difftime(LastUpdateTimestamp, DisconnectTimestamp, unit = 'secs'))) %>% 
-  mutate(dur_total = as.integer(difftime(LastUpdateTimestamp, InitiationTimestamp, unit = 'secs'))) %>% 
+  mutate(dur_call_hold = as.integer(Agent.CustomerHoldDuration)) %>%
+  # mutate(dur_aft = as.integer(difftime(Agent.AfterContactWorkEndTimestamp, Agent.AfterContactWorkStartTimestamp, unit = 'secs'))) %>%
+  mutate(dur_aft = as.integer(Agent.AfterContactWorkDuration)) %>%
+  mutate(dur_dis_upd = as.integer(difftime(LastUpdateTimestamp, DisconnectTimestamp, unit = 'secs'))) %>%
+  mutate(dur_total = as.integer(difftime(LastUpdateTimestamp, InitiationTimestamp, unit = 'secs'))) %>%
 
   # oktaid
-  mutate(oktaid = Agent.Username) %>% 
-  
+  mutate(oktaid = Agent.Username) %>%
+
   # flags
-  mutate(flag_weekday = case_when(when_day %in% c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday') ~ 1, T ~ 0)) %>% 
-  mutate(flag_queued = case_when(!is.na(tm_quenq) ~ 1, T ~ 0)) %>% 
-  mutate(flag_answer = case_when(!is.na(tm_agcon) ~ 1, T ~ 0)) %>% 
-  mutate(flag_inbound = case_when(InitiationMethod == 'INBOUND' ~ 1, T ~ 0)) %>% 
-  mutate(flag_outbound = case_when(InitiationMethod == 'OUTBOUND' ~ 1, T ~ 0)) %>% 
-  mutate(flag_other = case_when(!InitiationMethod %in% c('INBOUND','OUTBOUND') ~ 1, T ~ 0)) %>% 
-  mutate(flag_answerin20 = case_when(dur_enq_deq < 21 ~ 1, T ~ 0)) %>% 
-  mutate(flag_calllonger30 = case_when(dur_call > 30 ~ 1, T ~ 0)) %>% 
-  
+  mutate(flag_weekday = case_when(when_day %in% c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday') ~ 1, T ~ 0)) %>%
+  mutate(flag_queued = case_when(!is.na(tm_quenq) ~ 1, T ~ 0)) %>%
+  mutate(flag_answer = case_when(!is.na(tm_agcon) ~ 1, T ~ 0)) %>%
+  mutate(flag_inbound = case_when(InitiationMethod == 'INBOUND' ~ 1, T ~ 0)) %>%
+  mutate(flag_outbound = case_when(InitiationMethod == 'OUTBOUND' ~ 1, T ~ 0)) %>%
+  mutate(flag_other = case_when(!InitiationMethod %in% c('INBOUND','OUTBOUND') ~ 1, T ~ 0)) %>%
+  mutate(flag_answerin20 = case_when(dur_enq_deq < 21 ~ 1, T ~ 0)) %>%
+  mutate(flag_calllonger30 = case_when(dur_call > 30 ~ 1, T ~ 0)) %>%
+
   # phone number they called formatted as a key for reference data
-  mutate(phone.number = str_replace(SystemEndpoint.Address,'\\+','')) %>% 
+  mutate(system_phone_number = str_replace(SystemEndpoint.Address,'\\+','')) %>%
 
   # keypress information
   mutate(keypress_var = case_when(!is.na(`Attributes.Key Press`) ~ 'Attributes.Key Press',
                                   !is.na(`Attributes.Key press`) ~ 'Attributes.Key press',
                                   !is.na(Attributes.KeyPress) ~ 'Attributes.KeyPress',
                                   !is.na(`Attributes.Key Press (Error)`) ~ 'Attributes.Key Press (Error)',
-                                  T ~ 'None')) %>% 
-  mutate(keypress = coalesce(`Attributes.Key Press`,`Attributes.Key press`,Attributes.KeyPress,`Attributes.Key Press (Error)`)) %>% 
+                                  T ~ 'None')) %>%
+  mutate(keypress = coalesce(`Attributes.Key Press`,`Attributes.Key press`,Attributes.KeyPress,`Attributes.Key Press (Error)`)) %>%
   
+  # MemberId with the slash delimiter removed
+  rename(member_id_aws = Attributes.MemberID) %>% 
+
   identity()
 
 # -------------------------------------------------------------------------

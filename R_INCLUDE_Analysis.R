@@ -2,6 +2,16 @@
 
 # adhoc analysis of the data
 
+
+# -------------------------------------------------------------------------
+# multiple calls
+
+df_calls %>% 
+  mutate(remote_number = CustomerEndpoint.Address) %>% 
+  count(service, remote_number, sort = TRUE) %>% 
+  slice(1:20) %>% 
+  pivot_wider(names_from = service, values_from = n, values_fill = 0)
+
 # -------------------------------------------------------------------------
 
 
@@ -62,3 +72,87 @@ tab_answered <- df_calls %>%
             answered_outbound_total = sum(flag_outbound == 1 & flag_answer == 1),
             answered_outbound_pcent = paste0(round(sum(flag_outbound == 1 & flag_answer == 1) / sum(flag_outbound) * 100, 1), '%'))
             
+
+# -------------------------------------------------------------------------
+
+df_calls %>% 
+  filter(when_date > '2023-01-01') %>% 
+  count(when_date) 
+
+df_calls %>% 
+  filter(when_date > '2023-01-01') %>% 
+  count(when_date, service) %>% 
+  rename(total_calls = n) %>% 
+  ggplot(aes(when_date, total_calls, fill = service)) +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  geom_col()
+
+# df_calls %>% 
+#   filter(when_date > '2023-01-01') %>% 
+#   count(when_date, service) %>% 
+#   rename(total_calls = n) %>% 
+#   geom_bar(position = 'stack', stat='identity') +
+#   geom_text(aes(label = total_Calls), vjust = -0.5, position = position_stack(vjust = .5)) +
+#   scale_y_continuous(labels = label_number()) +
+#   theme(axis.text.x=element_text(angle=45,hjust=1)) +
+#   geom_col()
+
+df_disk <- tribble(~when_date, ~disk_size,
+                   "2023-01-01", 0.1,
+                   "2023-01-02", 1.2,
+                   "2023-01-03", 23.1,
+                   "2023-01-04", 22.8,
+                   "2023-01-05", 22.8,
+                   "2023-01-06", 19.5,
+                   "2023-01-07", .6,
+                   "2023-01-08", .1,
+                   "2023-01-09", 23.4,
+                   "2023-01-10", 20.5,
+                   "2023-01-11", 23.6,
+                   "2023-01-12", 22.4,
+                   "2023-01-13", 20.5,
+                   "2023-01-14", .5,
+                   "2023-01-15", .1,
+                   "2023-01-16", 25,
+                   "2023-01-17", 24.4,
+                   "2023-01-18", 64.7)
+
+df_disk %>% 
+  ggplot(aes(when_date, disk_size)) +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  geom_col()
+
+
+# -------------------------------------------------------------------------
+
+df_calls %>% 
+  colnames()
+
+# -------------------------------------------------------------------------
+
+df_calls %>% 
+  filter(flag_answer == 1) %>% 
+  filter(service == 'Consumer') %>% 
+  filter(!is.na(Attributes.MemberID)) %>% 
+  filter(Attributes.MemberID != '#NA') %>% 
+  left_join(df_mbr, by = c('Attributes.MemberID' = 'member_aws')) %>% 
+  count(service, Attributes.MemberID, member_name, okta.MBR) %>% 
+  add_count(member_name) %>% 
+  filter(nn > 1) %>% 
+  arrange(Attributes.MemberID) %>% 
+  slice(1:20)
+
+df_calls %>% 
+  count(Attributes.ForMember)
+
+df_calls %>% 
+  mutate(Attributes.MemberID = na_if(Attributes.MemberID, "None")) %>% 
+  mutate(Attributes.MemberID = na_if(Attributes.MemberID, "#NA")) %>% 
+  mutate(dump = is.na(Attributes.MemberID) & is.na(Attributes.ForMember)) %>% 
+  filter(!dump) %>% 
+  count(Attributes.MemberID, Attributes.ForMember) 
+
+df_calls %>% 
+  filter(!is.na(oktaid)) %>% 
+  slice(1:3) %>% 
+  select(oktaid)
