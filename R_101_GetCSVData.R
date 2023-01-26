@@ -3,8 +3,8 @@ library(arrow)
 library(glue)
 library(here)
 
-WRITE.DATA = TRUE
-WRITE.PARQUET = TRUE
+WRITE_DATA = TRUE
+WRITE_PARQUET = TRUE
 
 # -------------------------------------------------------------------------
 # get Jon's CSV exports 
@@ -18,7 +18,7 @@ df_csvs <- tibble(csvdata = list.files(source_dir, recursive = TRUE)) %>%
   filter(type == 'csv') %>% 
   identity()
 
-print(glue('CSV files from Jons process - {nrow(df_csvs)} in total from {min(df_csvs$day)} to {max(df_csvs$day)}'))
+print(glue('CSV from Jons process - {nrow(df_csvs)} in total from {min(df_csvs$day)} to {max(df_csvs$day)}'))
 
 # -------------------------------------------------------------------------
 # get current downloaded files and figure out which new ones to get
@@ -82,10 +82,10 @@ print(glue('Collected {nrow(df_get)} CSVs from {date_from} to {date_to}, {nrow(o
 # -------------------------------------------------------------------------
 # save to file
 
-if (WRITE.DATA) {
-  out.file <- here('data',glue('CTR_{date_from}_{date_to}.csv'))
-  print(glue('Saving to {out.file}'))
-  write.csv(outputcsv, out.file, row.names = FALSE)
+if (WRITE_DATA) {
+  # out.file <- here('data',glue('CTR_{date_from}_{date_to}.csv'))
+  # print(glue('Saving to {out.file}'))
+  # write.csv(outputcsv, out.file, row.names = FALSE)
   
   out.file <- here('data',glue('CTR_{date_from}_{date_to}.parquet'))
   print(glue('Saving to {out.file}'))
@@ -135,4 +135,26 @@ if (WRITE_PARQUET) {
   print(glue('Saving to {out.file}, {nrow(df_ctrs_orig)} records in total'))
   write_parquet(df_ctrs_orig, out.file)
   
+  # keep the latest TOTAL file only
+  df_total_parquets <- tibble(totaldata = list.files(local_dir, recursive = TRUE)) %>% 
+    mutate(type = word(totaldata, 2, sep='\\.')) %>% 
+    filter(type == 'parquet') %>% 
+    mutate(tag = word(totaldata, 1, sep='_')) %>% 
+    filter(tag == 'TOTAL') %>% 
+    mutate(date_from = word(totaldata, 2, sep='_')) %>% 
+    mutate(date_to = word(totaldata, 3, sep='_')) %>% 
+    mutate(date_to = word(date_to, 1, sep = '\\.')) %>% 
+    arrange(desc(date_to)) %>% 
+    filter(row_number() > 1) %>% 
+    identity()
+  
+  df_total_parquets
+  
+  if (nrow(df_total_parquets) > 0) {
+    for (del in df_total_parquets$totaldata) {
+      del <- here('data', del)
+      print(paste0(' .. Deleting', del))
+      file.remove(del)
+    }
+  }
 }

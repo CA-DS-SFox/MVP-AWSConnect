@@ -22,8 +22,9 @@ df_okta <- read_csv(source_okta, col_types = cols(.default='c'))
 df_okta <- df_okta %>% 
   rename(oktaid = okta_id) %>% 
   rename(okta_name = advisername) %>% 
-  rename(okta_MBR = office) %>% 
-  select(oktaid, okta_name, okta_MBR) %>% 
+  rename(okta_member_name = office) %>% 
+  rename(okta_member_number = member_id) %>% 
+  select(oktaid, okta_name, okta_member_number, okta_member_name) %>% 
   ungroup()
 
 # -------------------------------------------------------------------------

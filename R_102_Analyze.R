@@ -3,6 +3,7 @@ library(janitor)
 library(arrow)
 library(here)
 library(glue)
+library(googlesheets4)
 
 source('R_INCLUDE_Crosstab.R')        # code to do crosstabs and holecounts
 source('R_INCLUDE_References.R')      # reference tables
@@ -10,11 +11,11 @@ source('R_INCLUDE_References.R')      # reference tables
 # -------------------------------------------------------------------------
 # read data
 
-NEW.DATA <- FALSE
+# if we want to output CALLS_... from TOTAL_ ...
+NEW.DATA <- TRUE
 
 if (NEW.DATA) {
   
-  # get current totals file parquet file created in R_101_GetCSVData.R
   local_dir <- here('data')
   
   df_prod_arrow <- tibble(datafiles = list.files(local_dir, recursive = TRUE)) %>% 
@@ -48,12 +49,13 @@ if (NEW.DATA) {
   df_ctrs_orig <- df_ctrs_orig %>% 
     mutate(ctr_setid = case_when(is.na(InitialContactId) ~ ContactId, T ~ InitialContactId), .before = 1) %>% 
     mutate(junk = 0, .before = 2)
-  
-  # now run this to create df_ctrs_good
+
+  # now run this to create df_ctrs_good and save to parquet
   # source('R_INCLUDE_CallRecordDef.R')  # input CSVs of flattened JSON CTRs, output df_calls_orig which is a call based dataframe
   
 } else {
   
+  # bypass R_INCLUDE_CallRecordDef.R and pick up data from here
   in.file <- here('data', 'CALLS_2023-01-20.parquet')
   df_calls_orig <- read_parquet(in.file, col_types = cols(.default = 'c'))
 }  

@@ -1,7 +1,31 @@
+library(tidyverse)
+library(janitor)
+library(arrow)
+library(here)
+library(glue)
+library(googlesheets4)
 
+TRANSFORMED.DATA <- TRUE
+if (TRANSFORMED.DATA) {
+  source('R_INCLUDE_Crosstab.R')        # code to do crosstabs and holecounts
+  source('R_INCLUDE_References.R')      # reference tables
+  df_calls <- read_parquet(here('data','TRANSFORMED.parquet'))
+  
+  print(max(df_calls$date_call))
+}
 
 # adhoc analysis of the data
 
+# -------------------------------------------------------------------------
+# daily CTRs by service
+
+df_calls %>% 
+  filter(when_date > '2023-01-01') %>% 
+  count(when_date, service) %>% 
+  rename(total_calls = n) %>% 
+  ggplot(aes(when_date, total_calls, fill = service)) +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  geom_col()
 
 # -------------------------------------------------------------------------
 # multiple calls
@@ -13,7 +37,6 @@ df_calls %>%
   pivot_wider(names_from = service, values_from = n, values_fill = 0)
 
 # -------------------------------------------------------------------------
-
 
 tab_inbound <- df_calls_lastweek %>% 
   group_by(InitiationMethod, call_week, service) %>% 
@@ -79,13 +102,6 @@ df_calls %>%
   filter(when_date > '2023-01-01') %>% 
   count(when_date) 
 
-df_calls %>% 
-  filter(when_date > '2023-01-01') %>% 
-  count(when_date, service) %>% 
-  rename(total_calls = n) %>% 
-  ggplot(aes(when_date, total_calls, fill = service)) +
-  theme(axis.text.x=element_text(angle=45,hjust=1)) +
-  geom_col()
 
 # df_calls %>% 
 #   filter(when_date > '2023-01-01') %>% 
@@ -156,3 +172,20 @@ df_calls %>%
   filter(!is.na(oktaid)) %>% 
   slice(1:3) %>% 
   select(oktaid)
+
+# -------------------------------------------------------------------------
+
+hc <- c('Agent.HierarchyGroups.Level1.GroupName',
+        'Agent.HierarchyGroups.Level2.GroupName',
+        'Agent.HierarchyGroups.Level3.GroupName',
+        'Agent.HierarchyGroups.Level4.GroupName',
+        'Agent.HierarchyGroups.Level5.GroupName')
+
+df_calls %>% hcount(cols_include = hc)
+
+df_calls %>% 
+  filter((!is.na(Agent.HierarchyGroups.Level4.GroupName) & (!is.na(okta_member_number)))) %>% 
+  select(Agent.HierarchyGroups.Level4.GroupName, okta_member_number) %>% 
+  count(Agent.HierarchyGroups.Level4.GroupName, okta_member_number) %>% 
+  mutate(same = Agent.HierarchyGroups.Level4.GroupName == okta_member_number) %>% 
+  arrange(same)

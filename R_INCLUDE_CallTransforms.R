@@ -79,7 +79,7 @@ df_calls_transform <- df_calls_orig %>%
   mutate(flag_inbound = case_when(InitiationMethod == 'INBOUND' ~ 1, T ~ 0)) %>%
   mutate(flag_outbound = case_when(InitiationMethod == 'OUTBOUND' ~ 1, T ~ 0)) %>%
   mutate(flag_other = case_when(!InitiationMethod %in% c('INBOUND','OUTBOUND') ~ 1, T ~ 0)) %>%
-  mutate(flag_answerin20 = case_when(dur_enq_deq < 21 ~ 1, T ~ 0)) %>%
+  mutate(flag_answerin20 = case_when(flag_answer == 1 & (dur_enq_deq < 21) ~ 1, T ~ 0)) %>%
   mutate(flag_calllonger30 = case_when(dur_call > 30 ~ 1, T ~ 0)) %>%
 
   # phone number they called formatted as a key for reference data
@@ -136,18 +136,23 @@ strfix <- function(ss) {
 # remove line feeds and carriage returns from text fields
 df_calls <- data.frame(lapply(df_calls, strfix))
 
+if (1 == 2) {
+  out.file <- here('data', 'TRANSFORMED.parquet')
+  print(paste(' ... Saving ', out.file))
+  write_parquet(df_calls, out.file)
+}
+
 # -------------------------------------------------------------------------
 # sanity checks 
 
 # check all oktaid are found in the reference table
 df_calls %>% 
   filter(!is.na(oktaid)) %>% 
-  filter(is.na(okta.name)) %>% 
+  filter(is.na(okta_name)) %>% 
   mutate(CheckFailed = 'Oktaid not found in reference table') %>% 
-  distinct(oktaid)
+  distinct(oktaid, service)
 
 # -------------------------------------------------------------------------
-
 
 # latest full weeks calls
 df_calls_lastweek <- df_calls %>% 
@@ -158,3 +163,4 @@ df_calls_lastweek %>% filter(is.na(service)) %>% count(phone.number, service)
 # current weeks calls
 df_calls_thisweek <- df_calls %>% 
   filter(when_week == max(when_week))
+
