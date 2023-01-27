@@ -125,6 +125,7 @@ fn_CALL_to_ANALYSIS <- function(df_calls_orig) {
     mutate(when_day = format(when_date, '%A')) %>%
     mutate(when_day = factor(when_day, levels = c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))) %>%
     mutate(when_month = format(when_date, '%Y-%m')) %>%
+    mutate(when_time = format(date_call, '%H-%M-%S')) %>% 
     mutate(when_hour = format(InitiationTimestamp, '%H')) %>%
     mutate(when_minute = format(InitiationTimestamp, '%M')) %>%
     mutate(when_second = format(InitiationTimestamp, '%S')) %>%
@@ -166,6 +167,7 @@ fn_CALL_to_ANALYSIS <- function(df_calls_orig) {
     # flags
     mutate(flag_weekday = case_when(when_day %in% c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday') ~ 1, T ~ 0)) %>%
     mutate(flag_queued = case_when(!is.na(tm_quenq) ~ 1, T ~ 0)) %>%
+    mutate(flag_queuednot = case_when(flag_queued == 1 ~0, T ~ 1)) %>%
     mutate(flag_answer = case_when(!is.na(tm_agcon) ~ 1, T ~ 0)) %>%
     mutate(flag_inbound = case_when(InitiationMethod == 'INBOUND' ~ 1, T ~ 0)) %>%
     mutate(flag_outbound = case_when(InitiationMethod == 'OUTBOUND' ~ 1, T ~ 0)) %>%
@@ -227,5 +229,10 @@ fn_CALL_to_ANALYSIS <- function(df_calls_orig) {
   df_calls <- data.frame(lapply(df_calls, strfix)) %>% 
     mutate(across(starts_with('dur_'), as.integer)) %>% 
     mutate(across(starts_with('flag_'), as.integer)) 
+  
+  # define the rules for splitting each dataset
+  df_calls %>% 
+    mutate(dataset_htc = case_when(service == 'Help To Claim' ~ 1, T ~ 0)) %>% 
+    mutate(dataset_pensionwise =  case_when(service == 'Pension Wise' ~ 1, T ~ 0))
 }
 

@@ -6,8 +6,13 @@ library(here)
 WRITE_DATA = TRUE
 WRITE_PARQUET = TRUE
 
+# Purpose : get flattened CSVs from the G: drive that have been created by Jons daily process 
+#           pick up any new ones, read them in, strip the first column
+#           write CTR_from_to.parquet
+#           write TOTAL_from_to.parquet
+
 # -------------------------------------------------------------------------
-# get Jon's CSV exports 
+# STEP 1: get Jon's CSV exports 
 
 source_dir <- 'G:/Shared drives/CA - Interim Connect Report Log Files & Guidance/Interim Reports/Contact Trace Records'
 
@@ -21,7 +26,7 @@ df_csvs <- tibble(csvdata = list.files(source_dir, recursive = TRUE)) %>%
 print(glue('CSV from Jons process - {nrow(df_csvs)} in total from {min(df_csvs$day)} to {max(df_csvs$day)}'))
 
 # -------------------------------------------------------------------------
-# get current downloaded files and figure out which new ones to get
+# STEP 2 : get current downloaded files and figure out which new ones to get
 local_dir <- here('data')
 
 df_downloads <- tibble(csvdata = list.files(local_dir, recursive = TRUE)) %>% 
@@ -43,7 +48,7 @@ df_get <- df_csvs %>% filter(day > download_after)
 print(glue('Getting CSV files - {nrow(df_get)} in total from {min(df_get$day)} to {max(df_get$day)}'))
 
 # -------------------------------------------------------------------------
-# get new data files
+# STEP 3 : get new data files and merge into a single dataframe
 
 for (i in seq_len(nrow(df_get))) {
   
@@ -62,7 +67,7 @@ for (i in seq_len(nrow(df_get))) {
 }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# remove first col which is an artefact from the python conversion export
+# STEP 4 : remove first col which is an artefact from the python conversion export
 outputcsv <- totalcsv %>% 
   select(-`...1`)
 
@@ -80,7 +85,7 @@ if (length(date_to) == 0) date_to <- date_from
 print(glue('Collected {nrow(df_get)} CSVs from {date_from} to {date_to}, {nrow(outputcsv)} records'))
 
 # -------------------------------------------------------------------------
-# save to file
+# STEP 5 : save to file
 
 if (WRITE_DATA) {
   # out.file <- here('data',glue('CTR_{date_from}_{date_to}.csv'))
@@ -93,7 +98,7 @@ if (WRITE_DATA) {
 }
 
 # -------------------------------------------------------------------------
-# create total data in parquet format - need to make this more automated
+# STEP 6 : create total data in parquet format
 
 if (WRITE_PARQUET) {
   local_dir <- here('data')
