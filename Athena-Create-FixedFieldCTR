@@ -1,0 +1,18 @@
+select 
+    CASE "systemendpoint.address"  WHEN '+443300544866' THEN 'Pensionwise' ELSE 'Other' END as dataset_pensionwise,
+    "initiationtimestamp","initiationmethod","initialcontactid","systemendpoint.address","systemendpoint.type","agent.username","disconnectreason","contactid",
+    "agent.routingprofile.name","queue.name","customerendpoint.address","queue.duration","attributes.timeinqueue","agent.agentinteractionduration",
+    "agent.aftercontactworkduration","agent.customerholdduration","agent.longestholdduration","agent.numberofholds","agentconnectionattempts",
+    "transferredtoendpoint.address","transferredtoendpoint.type","agent.hierarchygroups.level1.groupname","agent.hierarchygroups.level2.groupname",
+    "agent.hierarchygroups.level3.groupname","agent.hierarchygroups.level4.groupname","agent.hierarchygroups.level5.groupname","attributes.numberofquestion",
+    "attributes.question1","attributes.question1response","attributes.question2","attributes.question2response","attributes.question3",
+    "attributes.question3response","attributes.question4","attributes.question4response","attributes.question5","attributes.question5response","queue.enqueuetimestamp",
+    "queue.dequeuetimestamp","connectedtosystemtimestamp","agent.connectedtoagenttimestamp","disconnecttimestamp","lastupdatetimestamp","transfercompletedtimestamp",
+    "agent.aftercontactworkstarttimestamp","agent.aftercontactworkendtimestamp","previouscontactid","nextcontactid","attributes.ooh_calls",
+    "attributes.vmcalledservice","attributes.vmreceiveremail","attributes.vmsenderemail","attributes.finalservice","attributes.flowselection",
+    "attributes.keypress","attributes.servicename","attributes.outcome","attributes.connectcontactid","attributes.endfragmentnum","attributes.startfragmentnum",
+    "attributes.appname","attributes.language_check","attributes.transfername","attributes.istransfer","attributes.formember","attributes.memberid",
+    "attributes.region","attributes.pensionwise","attributes.holidayname","attributes.publicholiday","attributes.ca_holiday","attributes.voicemailstatus",
+    "attributes.country","attributes.vmcustomerqueueflow#1","references","channel","customerendpoint.type","attributes.vmcustomerqueueflow"
+from contact_trace_records 
+WHERE "systemendpoint.address" = '+443300544866' AND substr("initiationtimestamp", 1, 10) = '2023-01-31'
