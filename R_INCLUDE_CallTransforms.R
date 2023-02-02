@@ -31,6 +31,7 @@ df_calls_transform <- df_calls_orig %>%
   # from an analysis point of view it makes sense to have a 'set' of commonly named variables
   mutate(when_date = date_call) %>%
   mutate(when_week = format(date_call,'%Y-%W')) %>%
+  mutate(when_daynum = format(date_call,'%w')) %>%
   mutate(when_day = format(when_date, '%A')) %>%
   mutate(when_day = factor(when_day, levels = c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))) %>%
   mutate(when_month = format(when_date, '%Y-%m')) %>%
